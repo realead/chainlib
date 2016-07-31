@@ -8,7 +8,7 @@ small framework demostrating O(n^2) behavior of the ld-linker
   3. python sh module (https://amoffat.github.io/sh/)
   
 ## Motivation
-  This article is a great explaination how the linker works: http://eli.thegreenplace.net/2013/07/09/library-order-in-static-linking
+  This article is a great explanation how the linker works: http://eli.thegreenplace.net/2013/07/09/library-order-in-static-linking
   
   From this explanation follows, that the running time for the linking of a library is `O(n^2)` with `n` number of object files in this library. The important passage is this one:
   
@@ -16,13 +16,13 @@ small framework demostrating O(n^2) behavior of the ld-linker
   >   - ...
   >   - Finally, if any of the objects in the library has been included in the link, the library is rescanned again - it's possible that symbols imported by the included object can be found in other objects within the same library.
 
-For a library with following dependencies needs only `1` iteration:
+For a chain library with following dependencies needs only `1` iteration:
 
     obj1->obj2->obj3->...->objn
     
 (this means that the functions in `obj1` call (only) functions from `obj2` which call only functions from `obj3` and so on.)
 
-Yet for a library with the following dependencies as many as `n` iterations could be needed: 
+Yet for a chain library with the following dependencies as many as `n` iterations could be needed: 
 
     obj1<-obj2<-obj3<-...<-objn
 
@@ -60,5 +60,25 @@ There are 3 kind of library created/used:
 |50000    |    5.40s     |   52.2s     |     76.8s     |
 
 ### Conclusion:
-    The worst case `O(n^2)` behavior of *ld* is pretty obvious (*libbackward.a*). But also the average case is `O(n^2)` (*librandom.a*). This means that the linkager against libraries with very many object files can take disproportional longer. 
+The worst case `O(n^2)` behavior of *ld* is pretty obvious (*libbackward.a*). But also the average case is also almost `O(n^2)` (*librandom.a*). This means that the linkager against libraries with very many object files can take disproportional longer. 
+
+### Explanation running time for librandom.a
+
+A hand waving explanation, why *librandom.a* is almost as bad as *libbackward.a*. 
+
+The question is: 
+>Given a chain library with n objects and random permutation, what is the expected streak length for the first iteration, i.e. how many object files are added to the exe. 
+
+The position of the first object file is uniformly distributed in [0, n-1], thus the average streak length `L(n)` can be calculated as:
+
+    L(n)=1+1/n\sum_{i=1}^{n-1}L(i)
+    L(1)=1
+    
+from this we get:
+    
+    nL(n)-(n-1)L(n-1)=n+\sum_{i=1}^{n-1}L(i)-(n-1)-\sum_{i=1}^{n-2}L(i)=1+L(n-1) =>
+    L(n)=1/n+L(n-1) =>
+    L(n)=\sum_{i=1}^{n}\approx log(n)
+    
+So we could estimate the running time as `O(n^2/log(n))`
   
