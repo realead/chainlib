@@ -1,5 +1,5 @@
 # chainlib
-small framework demostrating O(n^2) behavior of the ld-linker
+a small framework demostrating O(n^2) behavior of the ld-linker
 
 ## Prerequisites
 
@@ -44,25 +44,30 @@ with `N` - the desired number of object files in the library.
 
 ## Results
 
-There are 3 kind of library created/used:
+There are 4 kinds of library created/used:
    1. *libforward.a* - only one iteration throught the library is needed
    2. *librandom.a* - the objects are shuffled randomly in the library
    3. *libackward.a* - worst case, *n* iteration through the library are needed.
+   4. *libevenodd.a* - consists of 2 object files (thus way compiler cannot perform optimization and inline the functions as calls switch between the two object files): 
+      1. even.o = contents of obj2.o+obj4.o+obj6.o+...
+      2. odd.o = contents of  obj1.o+obj3.o+obj5.o+...
    
  The times needed for linking of main.o against the libraries with *ld*-linker are (depending on *N* - the number of the object files in the library):
 
-|N        | libforward.a | librandom.a | libbackward.a |
-|:--------|-------------:|------------:|--------------:|
-|100      |     0.04s    |    0.04s    |      0.04s    |
-|1000     |    0.10s     |    0.12s    |      0.13s    |
-|5000     |    0.54s     |    0.81s    |      1.00s    |
-|10000    |    1.07s     |    2.43s    |      3.27s    |
-|50000    |    5.40s     |   52.2s     |     76.8s     |
+|N        | libforward.a | librandom.a | libbackward.a |libevenodd.a  |
+|:--------|-------------:|------------:|--------------:|-------------:|
+|100      |     0.04s    |    0.04s    |      0.04s    |      0.04s   |
+|1000     |    0.10s     |    0.12s    |      0.13s    |      0.04s   |
+|5000     |    0.54s     |    0.81s    |      1.00s    |      0.04s   |
+|10000    |    1.07s     |    2.43s    |      3.27s    |      0.05s   |
+|50000    |    5.40s     |   52.2s     |     76.8s     |      0.13s   |
 
 ### Conclusion:
 The worst case `O(n^2)` behavior of *ld* is pretty obvious (*libbackward.a*). But also the average case is also almost `O(n^2)` (*librandom.a*). This means that the linkager against libraries with very many object files can take disproportional longer. 
 
-### Explanation running time for librandom.a
+To put all functions in one object file would result in the fastest linking time (see *libevenodd.a*), however that would result in an executable with all symbols (even if some of them are not needed and would be excluded by linker for other libraries (forward, backward, random)).
+
+### Explanation for running time of librandom.a
 
 A hand waving explanation, why *librandom.a* is almost as bad as *libbackward.a*. 
 
