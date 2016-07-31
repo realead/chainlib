@@ -20,12 +20,18 @@ for i in xrange(n):
     target= name+".o"
     objs.append(target)
     output=sh.gcc([source,"-c", "-o", target])
-    if i%500==0:
-        print i
+    if i%500==499:
+        print "created", i+1,"objects so far"
     
 #create libraries
+#forward:
 output=sh.ar(["rcs", "libforward.a"]+objs)
 
+#backward:
+objs.reverse()
+output=sh.ar(["rcs", "libbackward.a"]+objs)
+
+#random:
 random.shuffle(objs)
 output=sh.ar(["rcs", "librandom.a"]+objs)
         
